@@ -24,5 +24,3 @@ For technical analysis with realtime 1 minute resolution streamer via GRPC, run:
 ```
 $ bov stream --tickers "IBOV,MGLU3,PETR4"
 ```
-
-You can pass --start for a backtest streaming or avoid it to do realtime.
