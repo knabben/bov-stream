@@ -1,2 +1,5 @@
+pandas
+fbprophet
+
 grpcio
 grpcio-tools
