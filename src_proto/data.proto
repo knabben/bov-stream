@@ -1,0 +1,18 @@
+syntax = "proto3";
+package stream;
+
+service RoutePrice {
+  rpc TraversePrice(InputPrice) returns (PredictedPrice) {}
+}
+
+message InputPrice {
+   string datetime = 1;
+   float close = 2;
+   string symbol = 3;
+}
+
+message PredictedPrice {
+   string datetime = 1;
+   float price = 2;
+   string symbol = 3;
+}

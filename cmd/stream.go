@@ -19,12 +19,19 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
+
+	pb "github.com/knabben/bov-stream/src_proto"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
+
+type priceServer struct{}
 
 var (
 	tickers   string
@@ -53,16 +60,39 @@ func parseTickers() []string {
 	return strings.Split(tickers, ",")
 }
 
-func parseJSON(json string) {
+func parseJSON(json string) string {
 	var prefix string = "chart.result.0."
-	fmt.Println(gjson.Get(json, prefix+"meta.symbol"),
-		gjson.Get(json, prefix+"indicators.quote"))
+	var timestamp []time.Time
+	var close []string
+
+	gjson.Get(json, prefix+"indicators.quote.0.close").ForEach(func(key, value gjson.Result) bool {
+		close = append(close, value.String())
+		return true
+	})
+
+	gjson.Get(json, prefix+"timestamp").ForEach(func(key, value gjson.Result) bool {
+		i, err := strconv.ParseInt(value.String(), 10, 64)
+		if err != nil {
+			return false
+		}
+		timestamp = append(timestamp, time.Unix(i, 0))
+		return true
+	})
+
+	for i, _ := range timestamp {
+		if close[i] != "" {
+			fmt.Println(close[i])
+			return close[i]
+		}
+	}
+	return ""
 }
 
-func getData(ticker string, wait chan int) {
+func getData(ticker string, wait chan int, conn *grpc.ClientConn) {
+	client := pb.NewRoutePriceClient(conn)
 	for {
-		t1 := time.Now()
-		t2 := t1.Local().Add(time.Minute * 1)
+		t2 := time.Now()
+		t1 := t2.Local().AddDate(0, 0, -1)
 
 		v := url.Values{}
 		v.Set("interval", "1m")
@@ -70,28 +100,47 @@ func getData(ticker string, wait chan int) {
 		v.Set("period1", fmt.Sprintf("%d", t1.Unix()))
 		v.Set("period2", fmt.Sprintf("%d", t2.Unix()))
 
-		var urlQuery = fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%s.SA?%s", ticker, v.Encode())
+		var urlQuery = fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%s.SA?%s",
+			ticker, v.Encode())
 
 		resp, err := http.Get(urlQuery)
-
 		if err != nil {
 			panic(err)
 		}
-		b, err := ioutil.ReadAll(resp.Body)
-		parseJSON(string(b))
 
-		time.Sleep(15 * time.Second)
+		b, err := ioutil.ReadAll(resp.Body)
+		closePrice, err := strconv.ParseFloat(parseJSON(string(b)), 64)
+		if err != nil {
+			panic(err)
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		r, err := client.TraversePrice(ctx, &pb.InputPrice{
+			Symbol: "symbol",
+			Close:  float32(closePrice),
+		})
+		fmt.Println(r.GetPrice())
+
+		time.Sleep(5 * time.Second)
 	}
 }
 
 func startStream() {
 	wait := make(chan int)
 
-	for _, ticker := range parseTickers() {
-		go func(ticker string, wait chan int) {
-			getData(ticker, wait)
-		}(ticker, wait)
+	conn, err := grpc.Dial("localhost:10000", grpc.WithInsecure())
+	if err != nil {
+		panic(err)
 	}
 
+	for _, ticker := range parseTickers() {
+		go func(ticker string, wait chan int, conn *grpc.ClientConn) {
+			getData(ticker, wait, conn)
+		}(ticker, wait, conn)
+	}
+
+	defer conn.Close()
 	<-wait
 }
