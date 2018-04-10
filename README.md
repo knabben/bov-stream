@@ -19,7 +19,7 @@ $ bov fundamental
 Price Stream
 ------------
 
-For technical analysis with realtime 1 minute resolution streamer via GRPC, run:
+For technical analysis with real-time 1 minute resolution streamer via GRPC, run:
 
 ```
 $ bov stream --tickers "IBOV,MGLU3,PETR4"

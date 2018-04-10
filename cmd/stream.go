@@ -19,7 +19,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
+	"reflect"
 	"strings"
 	"time"
 
@@ -60,37 +60,31 @@ func parseTickers() []string {
 	return strings.Split(tickers, ",")
 }
 
-func parseJSON(json string) string {
+func parseJSON(json string) map[time.Time]float64 {
 	var prefix string = "chart.result.0."
-	var timestamp []time.Time
-	var close []string
+	prices := make(map[time.Time]float64)
 
-	gjson.Get(json, prefix+"indicators.quote.0.close").ForEach(func(key, value gjson.Result) bool {
-		close = append(close, value.String())
-		return true
-	})
+	results := gjson.GetMany(json, prefix+"indicators.quote.0.close", prefix+"timestamp")
 
-	gjson.Get(json, prefix+"timestamp").ForEach(func(key, value gjson.Result) bool {
-		i, err := strconv.ParseInt(value.String(), 10, 64)
-		if err != nil {
-			return false
+	closePrice := reflect.ValueOf(results[0].Value())
+	timestamp := reflect.ValueOf(results[1].Value())
+
+	for i := 0; i < closePrice.Len(); i++ {
+		price := closePrice.Index(i).Interface()
+		if price == nil {
+			continue
 		}
-		timestamp = append(timestamp, time.Unix(i, 0))
-		return true
-	})
 
-	for i, _ := range timestamp {
-		if close[i] != "" {
-			fmt.Println(close[i])
-			return close[i]
-		}
+		ts := int64(timestamp.Index(i).Interface().(float64))
+		prices[time.Unix(ts, 0)] = price.(float64)
 	}
-	return ""
+
+	return prices
 }
 
 func getData(ticker string, wait chan int, conn *grpc.ClientConn) {
-	client := pb.NewRoutePriceClient(conn)
 	for {
+		client := pb.NewRoutePriceClient(conn)
 		t2 := time.Now()
 		t1 := t2.Local().AddDate(0, 0, -1)
 
@@ -102,6 +96,7 @@ func getData(ticker string, wait chan int, conn *grpc.ClientConn) {
 
 		var urlQuery = fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%s.SA?%s",
 			ticker, v.Encode())
+		fmt.Println(urlQuery)
 
 		resp, err := http.Get(urlQuery)
 		if err != nil {
@@ -109,21 +104,23 @@ func getData(ticker string, wait chan int, conn *grpc.ClientConn) {
 		}
 
 		b, err := ioutil.ReadAll(resp.Body)
-		closePrice, err := strconv.ParseFloat(parseJSON(string(b)), 64)
-		if err != nil {
-			panic(err)
-		}
+		closePrice := parseJSON(string(b))
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+
+		for key, value := range closePrice {
+			_, err := client.TraversePrice(ctx, &pb.InputPrice{
+				Symbol:   ticker,
+				Datetime: key.Format("2006-01-02 15:04"),
+				Close:    float32(value),
+			})
+			if err != nil {
+				fmt.Println(err)
+			}
+
+		}
 		defer cancel()
-
-		r, err := client.TraversePrice(ctx, &pb.InputPrice{
-			Symbol: "symbol",
-			Close:  float32(closePrice),
-		})
-		fmt.Println(r.GetPrice())
-
-		time.Sleep(5 * time.Second)
+		time.Sleep(15 * time.Second)
 	}
 }
 
