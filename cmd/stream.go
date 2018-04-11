@@ -86,7 +86,7 @@ func getData(ticker string, wait chan int, conn *grpc.ClientConn) {
 	for {
 		client := pb.NewRoutePriceClient(conn)
 		t2 := time.Now()
-		t1 := t2.Local().AddDate(0, 0, -1)
+		t1 := t2.Local().Add(-1 * time.Hour)
 
 		v := url.Values{}
 		v.Set("interval", "1m")
@@ -120,7 +120,7 @@ func getData(ticker string, wait chan int, conn *grpc.ClientConn) {
 
 		}
 		defer cancel()
-		time.Sleep(15 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }
 
