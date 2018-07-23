@@ -24,7 +24,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/knabben/bov-stream/company"
+	"github.com/knabben/bov-stream/live/company"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
 )

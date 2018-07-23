@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
 
-	pb "github.com/knabben/bov-stream/src_proto"
+	pb "github.com/knabben/bov-stream/live/src_proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )

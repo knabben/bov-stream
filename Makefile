@@ -1,4 +1,6 @@
 build:
 	dep ensure
-	go build -o bov main.go
-	sudo mv bov /usr/local/bin/
+	go build -o bov live/main.go
+
+run-web:
+	cd scrapper; iex -S mix phx.server
