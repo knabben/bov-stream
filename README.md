@@ -5,7 +5,8 @@
 Run the phoenix server with:
 
 ```
-make run-web
+make run-api  # phoenix server
+make run-web  # react front-end
 ```
 
 ### Ibovespa Companies
