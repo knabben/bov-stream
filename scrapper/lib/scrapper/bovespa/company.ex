@@ -2,7 +2,6 @@ defmodule Scrapper.Bovespa.Company do
   use Ecto.Schema
   import Ecto.Changeset
 
-
   schema "companies" do
     field :ibovespa, :boolean, default: false
     field :main_url, :string

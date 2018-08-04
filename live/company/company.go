@@ -25,8 +25,10 @@ func StartDatabase() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-
 	db.AutoMigrate(&Company{})
-	db.Where("ibovespa = true").Order("segment desc").Find(&Companies)
 	return db
+}
+
+func ListCompanies(db *gorm.DB) *gorm.DB {
+	return db.Where("ibovespa = true").Order("segment desc").Limit(5).Offset(1).Find(&Companies)
 }

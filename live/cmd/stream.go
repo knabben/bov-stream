@@ -15,26 +15,24 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
-	"strings"
 	"time"
+
+	"github.com/knabben/bov-stream/live/company"
+	"github.com/segmentio/kafka-go"
 
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
-
-	pb "github.com/knabben/bov-stream/live/src_proto"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 type priceServer struct{}
 
 var (
-	tickers   string
 	startDate string
 	endDate   string
 
@@ -51,13 +49,8 @@ var (
 func init() {
 	RootCmd.AddCommand(streamCmd)
 
-	streamCmd.PersistentFlags().StringVarP(&tickers, "tickers", "t", "", "Comma separated BVSP tickers")
 	streamCmd.PersistentFlags().StringVarP(&startDate, "start-date", "s", "", "Start date")
 	streamCmd.PersistentFlags().StringVarP(&endDate, "end-date", "e", "", "End date")
-}
-
-func parseTickers() []string {
-	return strings.Split(tickers, ",")
 }
 
 func parseJSON(json string) map[time.Time]float64 {
@@ -82,22 +75,31 @@ func parseJSON(json string) map[time.Time]float64 {
 	return prices
 }
 
-func getData(ticker string, wait chan int, conn *grpc.ClientConn) {
+func getData(ticker string, wait chan int) {
 	for {
-		client := pb.NewRoutePriceClient(conn)
+		topic := "topic1"
+
+		w := kafka.NewWriter(
+			kafka.WriterConfig{
+				Brokers:  []string{"192.168.99.252:9092"},
+				Topic:    topic,
+				Balancer: &kafka.LeastBytes{},
+			})
+
 		t2 := time.Now()
-		t1 := t2.Local().Add(-1 * time.Hour)
+		t1 := t2.Local().Add(-360 * time.Hour)
 
 		v := url.Values{}
-		v.Set("interval", "1m")
+		v.Set("interval", "1d")
 		v.Set("symbol", fmt.Sprintf("%s.SA", ticker))
 		v.Set("period1", fmt.Sprintf("%d", t1.Unix()))
 		v.Set("period2", fmt.Sprintf("%d", t2.Unix()))
 
-		var urlQuery = fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%s.SA?%s",
+		var urlQuery = fmt.Sprintf(
+			"https://query1.finance.yahoo.com/v8/finance/chart/%s.SA?%s",
 			ticker, v.Encode())
-		fmt.Println(urlQuery)
 
+		fmt.Println(urlQuery)
 		resp, err := http.Get(urlQuery)
 		if err != nil {
 			panic(err)
@@ -106,38 +108,31 @@ func getData(ticker string, wait chan int, conn *grpc.ClientConn) {
 		b, err := ioutil.ReadAll(resp.Body)
 		closePrice := parseJSON(string(b))
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-
 		for key, value := range closePrice {
-			_, err := client.TraversePrice(ctx, &pb.InputPrice{
-				Symbol:   ticker,
-				Datetime: key.Format("2006-01-02 15:04"),
-				Close:    float32(value),
-			})
-			if err != nil {
-				fmt.Println(err)
-			}
-
+			w.WriteMessages(context.Background(),
+				kafka.Message{
+					Value: []byte(fmt.Sprintf("%s|%s|%d",
+						ticker, key.Format("2006-01-02 15:04"), value),
+					),
+				},
+			)
+			fmt.Println(key, value)
 		}
-		defer cancel()
+		w.Close()
 		time.Sleep(5 * time.Second)
 	}
 }
 
 func startStream() {
+	db := company.StartDatabase()
+	company.ListCompanies(db)
 	wait := make(chan int)
 
-	conn, err := grpc.Dial("localhost:10000", grpc.WithInsecure())
-	if err != nil {
-		panic(err)
+	for _, ticker := range company.Companies {
+		go func(ticker company.Company, wait chan int) {
+			getData(ticker.Symbol, wait)
+		}(ticker, wait)
 	}
 
-	for _, ticker := range parseTickers() {
-		go func(ticker string, wait chan int, conn *grpc.ClientConn) {
-			getData(ticker, wait, conn)
-		}(ticker, wait, conn)
-	}
-
-	defer conn.Close()
 	<-wait
 }
