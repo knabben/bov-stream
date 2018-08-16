@@ -76,51 +76,43 @@ func parseJSON(json string) map[time.Time]float64 {
 }
 
 func getData(ticker string, wait chan int) {
-	for {
-		topic := "topic1"
+	w := kafka.NewWriter(
+		kafka.WriterConfig{
+			Brokers:  []string{"192.168.99.252:9092"},
+			Topic:    ticker,
+			Balancer: &kafka.LeastBytes{},
+		})
 
-		w := kafka.NewWriter(
-			kafka.WriterConfig{
-				Brokers:  []string{"192.168.99.252:9092"},
-				Topic:    topic,
-				Balancer: &kafka.LeastBytes{},
-			})
+	v := url.Values{}
+	v.Set("interval", "1d")
+	v.Set("range", "5d")
+	v.Set("symbol", fmt.Sprintf("%s.SA", ticker))
 
-		t2 := time.Now()
-		t1 := t2.Local().Add(-360 * time.Hour)
+	var urlQuery = fmt.Sprintf(
+		"https://query1.finance.yahoo.com/v8/finance/chart/%s.SA?%s",
+		ticker, v.Encode())
 
-		v := url.Values{}
-		v.Set("interval", "1d")
-		v.Set("symbol", fmt.Sprintf("%s.SA", ticker))
-		v.Set("period1", fmt.Sprintf("%d", t1.Unix()))
-		v.Set("period2", fmt.Sprintf("%d", t2.Unix()))
-
-		var urlQuery = fmt.Sprintf(
-			"https://query1.finance.yahoo.com/v8/finance/chart/%s.SA?%s",
-			ticker, v.Encode())
-
-		fmt.Println(urlQuery)
-		resp, err := http.Get(urlQuery)
-		if err != nil {
-			panic(err)
-		}
-
-		b, err := ioutil.ReadAll(resp.Body)
-		closePrice := parseJSON(string(b))
-
-		for key, value := range closePrice {
-			w.WriteMessages(context.Background(),
-				kafka.Message{
-					Value: []byte(fmt.Sprintf("%s|%s|%d",
-						ticker, key.Format("2006-01-02 15:04"), value),
-					),
-				},
-			)
-			fmt.Println(key, value)
-		}
-		w.Close()
-		time.Sleep(5 * time.Second)
+	fmt.Println(urlQuery)
+	resp, err := http.Get(urlQuery)
+	if err != nil {
+		panic(err)
 	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	closePrice := parseJSON(string(b))
+
+	for key, value := range closePrice {
+		w.WriteMessages(context.Background(),
+			kafka.Message{
+				Value: []byte(fmt.Sprintf("%s|%f",
+					key.Format("2006-01-02 15:04"), value),
+				),
+			},
+		)
+		fmt.Println(key, value)
+	}
+	w.Close()
+	time.Sleep(5 * time.Second)
 }
 
 func startStream() {
