@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from django.db import models
-
 
 REPORT = (
     ('ab', 'Balanço Patrimonial Ativo'),  # Assets balance sheet
@@ -12,7 +9,6 @@ REPORT = (
     ('va', 'Demonstração de Valor Adicionado'),  # Result abrangente
 )
 
-# -- Dimensions
 class Date(models.Model):
     day = models.IntegerField()
     month = models.IntegerField()
@@ -31,8 +27,9 @@ class Company(models.Model):
     main_url = models.CharField(max_length=255)
     ibovespa = models.BooleanField(default=False)
     segment = models.CharField(max_length=200, default='')
-    inserted_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True)
 
     @property
     def sector(self):
@@ -45,17 +42,17 @@ class Company(models.Model):
         db_table = "companies"
 
 class FinancialReport(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    date = models.ForeignKey(Date, on_delete=models.CASCADE)
     report_type = models.CharField(max_length=2, choices=REPORT)
-    company = models.ForeignKey(Company)
     main_url = models.CharField(max_length=200)
     url = models.TextField()
     version = models.IntegerField()
-    date = models.ForeignKey(Date)
 
 
 # -- Fact table
 class ValueFact(models.Model):
-    date = models.ForeignKey(Date)
-    account = models.ForeignKey(Account)
-    fin_metadata = models.ForeignKey(FinancialReport)
+    date = models.ForeignKey(Date, on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    fin_metadata = models.ForeignKey(FinancialReport, on_delete=models.CASCADE)
     value = models.FloatField()

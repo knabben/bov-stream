@@ -9,6 +9,7 @@ psycopg2-binary = "*"
 kafka-python = "*"
 
 [dev-packages]
+ipdb = "*"
 
 [requires]
 python_version = "3.6"

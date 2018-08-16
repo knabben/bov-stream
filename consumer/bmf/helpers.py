@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 from collections import defaultdict
 
 from datetime import datetime
-from bovespa.models import Company, Date, FinancialReport, REPORT
+from bmf.models import Company, Date, FinancialReport, REPORT
 
 
 session = requests.Session()
@@ -32,7 +32,7 @@ def fetch_portfolio_composition():
     for tr in data.find_all('tr'):
         try:
             col_vle = [member.text.strip() for member in tr.find_all('span')]
-            col_desc = ['name', 'type', 'qty', 'part']
+            col_desc = ['symbol', 'name', 'type', 'qty', 'part']
 
             symbol = col_vle.pop(0)
 
