@@ -84,3 +84,5 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+
+BOOTSTRAP_SERVER = '192.168.99.252:9092'

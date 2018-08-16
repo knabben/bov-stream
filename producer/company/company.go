@@ -16,11 +16,11 @@ type Company struct {
 }
 
 func (Company) TableName() string {
-	return "bovespa_company"
+	return "companies"
 }
 
 func StartDatabase() *gorm.DB {
-	dbUrl := "host=localhost port=5432 dbname=xt user=postgres password=postgres sslmode=disable"
+	dbUrl := "host=localhost port=5432 dbname=bmf user=postgres password=postgres sslmode=disable"
 	db, err := gorm.Open("postgres", dbUrl)
 	if err != nil {
 		panic(err)
@@ -30,5 +30,5 @@ func StartDatabase() *gorm.DB {
 }
 
 func ListCompanies(db *gorm.DB) *gorm.DB {
-	return db.Where("ibovespa = true").Order("segment desc").Limit(5).Offset(1).Find(&Companies)
+	return db.Where("ibovespa = true").Order("name asc").Limit(3).Find(&Companies)
 }

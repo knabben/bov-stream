@@ -32,8 +32,7 @@ def fetch_portfolio_composition():
     for tr in data.find_all('tr'):
         try:
             col_vle = [member.text.strip() for member in tr.find_all('span')]
-            col_desc = ['symbol', 'name', 'type', 'qty', 'part']
-
+            col_desc = ['name', 'type', 'qty', 'part']
             symbol = col_vle.pop(0)
 
             for i, (value, desc) in enumerate(zip(col_vle, col_desc)):

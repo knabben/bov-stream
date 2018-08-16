@@ -23,7 +23,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/knabben/bov-stream/live/company"
+	"github.com/knabben/bov-stream/producer/company"
 	"github.com/segmentio/kafka-go"
 
 	"github.com/spf13/cobra"
@@ -53,66 +53,66 @@ func init() {
 	streamCmd.PersistentFlags().StringVarP(&endDate, "end-date", "e", "", "End date")
 }
 
-func parseJSON(json string) map[time.Time]float64 {
-	var prefix string = "chart.result.0."
-	prices := make(map[time.Time]float64)
+func parseJSON(json string) []string {
+	var prefix string = "chart.result.0"
+	prices := []string{}
 
-	results := gjson.GetMany(json, prefix+"indicators.quote.0.close", prefix+"timestamp")
+	results := gjson.GetMany(json, prefix+".timestamp")
+	timestamp := reflect.ValueOf(results[0].Value())
 
-	closePrice := reflect.ValueOf(results[0].Value())
-	timestamp := reflect.ValueOf(results[1].Value())
+	open := reflect.ValueOf(gjson.GetMany(json, prefix+".indicators.quote.0.open")[0].Value())
+	high := reflect.ValueOf(gjson.GetMany(json, prefix+".indicators.quote.0.high")[0].Value())
+	low := reflect.ValueOf(gjson.GetMany(json, prefix+".indicators.quote.0.low")[0].Value())
+	close := reflect.ValueOf(gjson.GetMany(json, prefix+".indicators.quote.0.close")[0].Value())
+	volume := reflect.ValueOf(gjson.GetMany(json, prefix+".indicators.quote.0.volume")[0].Value())
 
-	for i := 0; i < closePrice.Len(); i++ {
-		price := closePrice.Index(i).Interface()
-		if price == nil {
-			continue
-		}
-
-		ts := int64(timestamp.Index(i).Interface().(float64))
-		prices[time.Unix(ts, 0)] = price.(float64)
+	for i := 0; i < timestamp.Len(); i++ {
+		p := fmt.Sprintf("%s,%.2f,%.2f,%.2f,%.2f,%.2f",
+			time.Unix(
+				int64(timestamp.Index(i).Interface().(float64)), 0).Format("2006-01-02"),
+			open.Index(i).Interface().(float64),
+			high.Index(i).Interface().(float64),
+			low.Index(i).Interface().(float64),
+			close.Index(i).Interface().(float64),
+			volume.Index(i).Interface().(float64))
+		prices = append(prices, p)
 	}
-
 	return prices
 }
 
 func getData(ticker string, wait chan int) {
-	w := kafka.NewWriter(
-		kafka.WriterConfig{
-			Brokers:  []string{"192.168.99.252:9092"},
-			Topic:    ticker,
-			Balancer: &kafka.LeastBytes{},
-		})
+	for {
+		w := kafka.NewWriter(
+			kafka.WriterConfig{
+				Brokers:  []string{"192.168.99.252:9092"},
+				Topic:    ticker,
+				Balancer: &kafka.LeastBytes{},
+			})
 
-	v := url.Values{}
-	v.Set("interval", "1d")
-	v.Set("range", "5d")
-	v.Set("symbol", fmt.Sprintf("%s.SA", ticker))
+		v := url.Values{}
+		v.Set("interval", "1d")
+		v.Set("range", "30d")
+		v.Set("symbol", fmt.Sprintf("%s.SA", ticker))
 
-	var urlQuery = fmt.Sprintf(
-		"https://query1.finance.yahoo.com/v8/finance/chart/%s.SA?%s",
-		ticker, v.Encode())
+		var urlQuery = fmt.Sprintf(
+			"https://query1.finance.yahoo.com/v8/finance/chart/%s.SA?%s",
+			ticker, v.Encode())
 
-	fmt.Println(urlQuery)
-	resp, err := http.Get(urlQuery)
-	if err != nil {
-		panic(err)
+		fmt.Println(urlQuery)
+		resp, err := http.Get(urlQuery)
+		if err != nil {
+			panic(err)
+		}
+
+		b, err := ioutil.ReadAll(resp.Body)
+		prices := parseJSON(string(b))
+
+		for _, value := range prices {
+			w.WriteMessages(context.Background(), kafka.Message{Value: []byte(value)})
+		}
+		w.Close()
+		time.Sleep(15 * time.Second)
 	}
-
-	b, err := ioutil.ReadAll(resp.Body)
-	closePrice := parseJSON(string(b))
-
-	for key, value := range closePrice {
-		w.WriteMessages(context.Background(),
-			kafka.Message{
-				Value: []byte(fmt.Sprintf("%s|%f",
-					key.Format("2006-01-02 15:04"), value),
-				),
-			},
-		)
-		fmt.Println(key, value)
-	}
-	w.Close()
-	time.Sleep(5 * time.Second)
 }
 
 func startStream() {

@@ -5,8 +5,10 @@ name = "pypi"
 
 [packages]
 django = "*"
+pytz = "*"
 psycopg2-binary = "*"
 kafka-python = "*"
+zipline = "*"
 
 [dev-packages]
 ipdb = "*"
