@@ -5,7 +5,6 @@ defmodule ScrapperWeb.Schema do
   alias ScrapperWeb.Resolvers
 
   query do
-
     field :companies, list_of(:company) do
       resolve fn _, _, _ ->
         {:ok, Bovespa.list_companies}
@@ -17,6 +16,22 @@ defmodule ScrapperWeb.Schema do
       arg :days, :integer
       resolve &Resolvers.Company.find_data/3
     end
+  end
+
+  subscription do
+    field :money, :return do
+      config fn _args, _info ->
+        {:ok, topic: "*"}
+      end
+    end
+  end
+
+  object :return do
+    field :id, :id
+    field :pnl, :float
+    field :portfolio_value, :float
+    field :returns, :float
+    field :timestamp, :integer
   end
 
   object :company do

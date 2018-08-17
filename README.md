@@ -8,7 +8,7 @@ It is composed of a:
 
 * Producer, responsible to fetch tickets price from Yahoo and send through a specific Kafka topic
 * Consumer, fetch the message and backtest on Zipline, returns are streamed through websocket
-* Web, 
+* Web interface, for visualization of events in realtime
 
 ```
 make run-producer &

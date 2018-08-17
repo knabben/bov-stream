@@ -1,5 +1,6 @@
 defmodule ScrapperWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :scrapper
+  use Absinthe.Phoenix.Endpoint
 
   socket "/socket", ScrapperWeb.UserSocket
 

@@ -1,9 +1,15 @@
+import json
 import pytz
 import time
+import zipline
+import websocket
 import pandas as pd
+
+from zipline.api import order, record, symbol, set_benchmark
 
 from io import StringIO
 from multiprocessing import Process
+from websocket import create_connection
 
 from pandas import DataFrame, Panel
 from kafka import KafkaConsumer
@@ -18,25 +24,33 @@ from django.core.management.base import BaseCommand
 class Command(BaseCommand):
     help = 'Kafka Consumer and zipline treatment'
 
-    def parse_kafka(self, company):
-        import zipline
-        from zipline.api import order, record, symbol, set_benchmark
+    def send_websocket(self, perf, company):
+        ws = create_connection("ws://127.0.0.1:4000/socket/websocket")
+        ws.send(json.dumps({'topic': 'money:1', 'event': 'phx_join', 'ref': 1, 'payload': {}}))
+        data = {'topic': 'money:1', 'event': 'money', 'ref': 1, 'payload': {
+            company: json.loads(perf.tail(1)[['pnl', 'portfolio_value', 'returns']].T.to_json())
+        }}
+        print("Sending {0}".format(data['payload']))
+        ws.send(json.dumps(data))
+        ws.close()
 
+    def parse_kafka(self, company):
         print("Listening {0}".format(company))
         consumer = KafkaConsumer(company, bootstrap_servers=settings.BOOTSTRAP_SERVER)
         df = DataFrame()
         end = datetime.now(timezone.utc)
         start = end - timedelta(days=30)
         columns = ['open', 'high', 'low', 'close','volume']
-
         print("Starting consuming...")
+
         for msg in consumer:
-            df = df.append(
-                pd.read_csv(StringIO(msg.value.decode('utf-8')), header=None, index_col=0,
-                            names=columns))
+            df = df.append(pd.read_csv(
+                StringIO(msg.value.decode('utf-8')),
+                header=None, index_col=0, names=columns)
+            )
+
             df.index = pd.to_datetime(df.index, utc=True)
             df.drop_duplicates(inplace=True)
-
             panel = Panel({company: df})
             panel.minor_axis = columns
 
@@ -58,16 +72,11 @@ class Command(BaseCommand):
                     handle_data=handle_data,
                     data=panel
                 )
-                # SEND TO WEBSOCKET
-                perf[['pnl', 'portfolio_value', 'returns']].T.to_json()
-            except:
-                import sys, traceback, ipdb
-                extype, value, tb = sys.exc_info()
-                traceback.print_exc()
+                self.send_websocket(perf, company)
+            except Exception as e:
+                print(e)
                 df = DataFrame()
 
     def handle(self, *args, **options):
         for company in Company.objects.filter(ibovespa=True)[:3]:
-            self.parse_kafka(company.symbol)
-
-            #Process(target=self.parse_kafka, args=(company.symbol,)).start()
+            Process(target=self.parse_kafka, args=(company.symbol,)).start()

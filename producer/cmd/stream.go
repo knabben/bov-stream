@@ -106,6 +106,7 @@ func getData(ticker string, wait chan int) {
 
 		b, err := ioutil.ReadAll(resp.Body)
 		prices := parseJSON(string(b))
+		fmt.Println(prices, urlQuery)
 
 		for _, value := range prices {
 			w.WriteMessages(context.Background(), kafka.Message{Value: []byte(value)})

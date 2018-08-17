@@ -29,6 +29,7 @@ defmodule ScrapperWeb.Router do
     forward "/graphql", Absinthe.Plug, schema: ScrapperWeb.Schema
     forward "/graphiql", Absinthe.Plug.GraphiQL,
       schema: ScrapperWeb.Schema,
+      socket: ScrapperWeb.UserSocket,
       interface: :simple
   end
 

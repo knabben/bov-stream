@@ -39,6 +39,7 @@ class Company(models.Model):
         return (sector, subsector)
 
     class Meta:
+        ordering = ('name',)
         db_table = "companies"
 
 class FinancialReport(models.Model):
