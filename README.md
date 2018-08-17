@@ -1,13 +1,29 @@
-## GraphQL API
+## BMF streamer
+
+Real-time BMF Stock Portfolio analysis
 
 ### Run
 
-Run the phoenix server with:
+It is composed of a:
+
+* Producer, responsible to fetch tickets price from Yahoo and send through a specific Kafka topic
+* Consumer, fetch the message and backtest on Zipline, returns are streamed through websocket
+* Web, 
 
 ```
-make run-api  # phoenix server
-make run-web  # react front-end
+make run-producer &
+make run-consumer
 ```
+
+### Visualizing in realtime
+
+It comes with a UI for realtime visualization and best performance companies ordering:
+
+```
+make run-web
+```
+
+## GraphQL API
 
 ### Ibovespa Companies
 
@@ -66,28 +82,4 @@ companyDays(id: $id, days: $days) {
 }
 ```
 
-## Live streaming
-
-### Build
-
-Ensure dep is installed and run
-
-```
-$ make build
-```
-
-### Fundamental
-
-First run xt command to fill up the Companies database (fill_db), after run:
-
-```
-$ bov fundamental
-```
-
-### Price Stream
-
-For technical analysis with real-time 1 minute resolution streamer via GRPC, run:
-
-```
-$ bov stream --tickers "IBOV,MGLU3,PETR4"
-```
+### Subscribe for events
