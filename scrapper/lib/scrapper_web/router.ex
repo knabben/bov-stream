@@ -13,6 +13,12 @@ defmodule ScrapperWeb.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/", ScrapperWeb do
+    pipe_through :browser
+
+    get "/", PageController, :index
+  end
+
   scope "/api" do
     pipe_through :api
     resources "/companies", CompanyController, only: [:index]
@@ -21,7 +27,9 @@ defmodule ScrapperWeb.Router do
   scope "/" do
     pipe_through :api
     forward "/graphql", Absinthe.Plug, schema: ScrapperWeb.Schema
-    forward "/graphiql", Absinthe.Plug.GraphiQL, schema: ScrapperWeb.Schema, interface: :simple
+    forward "/graphiql", Absinthe.Plug.GraphiQL,
+      schema: ScrapperWeb.Schema,
+      interface: :simple
   end
 
 end

@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 django = "*"
+websocket-client = "*"
 pytz = "*"
 psycopg2-binary = "*"
 kafka-python = "*"

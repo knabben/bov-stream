@@ -2,14 +2,12 @@ import React, { Component } from 'react'
 import gql from 'graphql-tag'
 import { graphql } from 'react-apollo'
 import { Link } from 'react-router-dom'
-import * as d3 from 'd3'
-import CandleStick from './CandleStick'
 import Select from 'react-select'
-import 'react-select/dist/react-select.css';
+import * as d3 from 'd3'
+
 
 
 class SimpleGraph extends Component {
-
   render() {
     if (this.props.data.loading) {
       return (<div>Loading...</div>)
@@ -30,11 +28,6 @@ class SimpleGraph extends Component {
       <div>
         <div className="row">
           <div className="main-data col-12">
-            <CandleStick
-              symbol={this.props.symbol}
-              days={this.props.days}
-              data={chartData}
-            />
           </div>
         </div>
       </div>

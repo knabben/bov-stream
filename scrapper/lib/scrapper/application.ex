@@ -12,18 +12,13 @@ defmodule Scrapper.Application do
       supervisor(Scrapper.Repo, []),
       # Start the endpoint when the application starts
       supervisor(ScrapperWeb.Endpoint, []),
-      # Start your own worker by calling: Scrapper.Worker.start_link(arg1, arg2, arg3)
-      # worker(Scrapper.Worker, [arg1, arg2, arg3]),
+      supervisor(Absinthe.Subscription, [ScrapperWeb.Endpoint]),
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Scrapper.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
-  # Tell Phoenix to update the endpoint configuration
-  # whenever the application is updated.
   def config_change(changed, _new, removed) do
     ScrapperWeb.Endpoint.config_change(changed, removed)
     :ok
