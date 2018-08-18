@@ -27,11 +27,14 @@ class Command(BaseCommand):
     def send_websocket(self, perf, company):
         ws = create_connection("ws://127.0.0.1:4000/socket/websocket")
         ws.send(json.dumps({'topic': 'money:1', 'event': 'phx_join', 'ref': 1, 'payload': {}}))
-        data = {'topic': 'money:1', 'event': 'money', 'ref': 1, 'payload': {
-            company: json.loads(perf.tail(1)[['pnl', 'portfolio_value', 'returns']].T.to_json())
-        }}
-        print("Sending {0}".format(data['payload']))
-        ws.send(json.dumps(data))
+        payload = json.loads(perf.tail(1)[['pnl', 'portfolio_value', 'returns']].T.to_json())
+
+        transaction = perf[perf['transactions'].map(lambda x: x != [])].index
+        if not transaction.empty:
+            payload['transaction'] = str(transaction.values[0])
+        data = json.dumps({'topic': 'money:1', 'event': 'money', 'ref': 1, 'payload': {company: payload}})
+        print(data)
+        ws.send(data)
         ws.close()
 
     def parse_kafka(self, company):
@@ -78,5 +81,5 @@ class Command(BaseCommand):
                 df = DataFrame()
 
     def handle(self, *args, **options):
-        for company in Company.objects.filter(ibovespa=True)[:3]:
+        for company in Company.objects.filter(ibovespa=True)[:10]:
             Process(target=self.parse_kafka, args=(company.symbol,)).start()

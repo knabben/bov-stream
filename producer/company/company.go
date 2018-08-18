@@ -30,5 +30,5 @@ func StartDatabase() *gorm.DB {
 }
 
 func ListCompanies(db *gorm.DB) *gorm.DB {
-	return db.Where("ibovespa = true").Order("name asc").Limit(3).Find(&Companies)
+	return db.Where("ibovespa = true").Order("name asc").Limit(10).Find(&Companies)
 }

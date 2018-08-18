@@ -83,3 +83,17 @@ companyDays(id: $id, days: $days) {
 ```
 
 ### Subscribe for events
+
+Returns and PNLs comes through subscription
+
+```
+subscription {
+  money {
+    id,
+    pnl,
+    portfolioValue,
+    returns,
+    timestamp
+  }
+}
+```

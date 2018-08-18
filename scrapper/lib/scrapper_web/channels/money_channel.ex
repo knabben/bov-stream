@@ -13,12 +13,10 @@ defmodule ScrapperWeb.MoneyChannel do
       pnl: values["pnl"],
       portfolio_value: values["portfolio_value"],
       returns: values["returns"],
+      transaction: String.slice(Enum.at(Map.values(return_value), 1), 0..9),
       timestamp: Enum.at(Map.keys(return_value), 0)
     }
-
-    IO.inspect data
-    Absinthe.Subscription.publish(ScrapperWeb.Endpoint, data , money: "*")
-    broadcast! socket, "money", params
+    Absinthe.Subscription.publish(ScrapperWeb.Endpoint, data, money: "*")
     {:noreply, socket}
   end
 end

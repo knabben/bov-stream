@@ -74,4 +74,9 @@ body, form, ul, table {
   .jumbotron {
     border-bottom: 0;
   }
+
+}
+
+td.value {
+  text-align: right;
 }
