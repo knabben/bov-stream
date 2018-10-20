@@ -2,7 +2,7 @@
 
 Real-time BMF Stock Portfolio analysis
 
-![Screenshot](https://raw.githubusercontent.com/knabben/blog/master/static/images/bov-screen.png)
+<img src="https://raw.githubusercontent.com/knabben/blog/master/static/images/bov-screen.png" width="700px">
 
 ### Install
 
