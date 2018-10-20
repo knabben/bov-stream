@@ -4,7 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
+bs4 = "*"
+django = ">=2.1.2"
 websocket-client = "*"
 pytz = "*"
 psycopg2-binary = "*"

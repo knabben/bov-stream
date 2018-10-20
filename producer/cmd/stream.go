@@ -54,7 +54,7 @@ func init() {
 }
 
 func parseJSON(json string) []string {
-	var prefix string = "chart.result.0"
+	prefix := "chart.result.0"
 	prices := []string{}
 
 	results := gjson.GetMany(json, prefix+".timestamp")
@@ -67,10 +67,13 @@ func parseJSON(json string) []string {
 	volume := reflect.ValueOf(gjson.GetMany(json, prefix+".indicators.quote.0.volume")[0].Value())
 
 	for i := 0; i < timestamp.Len(); i++ {
+		openValue := open.Index(i).Interface()
+		if openValue == nil {
+			continue
+		}
 		p := fmt.Sprintf("%s,%.2f,%.2f,%.2f,%.2f,%.2f",
-			time.Unix(
-				int64(timestamp.Index(i).Interface().(float64)), 0).Format("2006-01-02"),
-			open.Index(i).Interface().(float64),
+			time.Unix(int64(timestamp.Index(i).Interface().(float64)), 0).Format("2006-01-02"),
+			openValue.(float64),
 			high.Index(i).Interface().(float64),
 			low.Index(i).Interface().(float64),
 			close.Index(i).Interface().(float64),

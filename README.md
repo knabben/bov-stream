@@ -2,6 +2,19 @@
 
 Real-time BMF Stock Portfolio analysis
 
+![Screenshot](https://raw.githubusercontent.com/knabben/blog/master/static/images/bov-screen.png)
+
+### Install
+
+Create a virtualenv inside consumer folder
+
+```
+cd consumer
+consumer$ pipenv shell
+consumer$ pipenv install
+consumer$ make company-fixture
+```
+
 ### Run
 
 It is composed of a:

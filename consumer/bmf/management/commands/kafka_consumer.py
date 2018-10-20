@@ -1,11 +1,8 @@
 import json
-import pytz
-import time
 import zipline
-import websocket
 import pandas as pd
 
-from zipline.api import order, record, symbol, set_benchmark
+from zipline.api import order, symbol
 
 from io import StringIO
 from multiprocessing import Process
@@ -15,7 +12,6 @@ from pandas import DataFrame, Panel
 from kafka import KafkaConsumer
 
 from django.conf import settings
-from datetime import datetime, timedelta, timezone
 
 from bmf.models import Company
 from django.core.management.base import BaseCommand
@@ -26,24 +22,32 @@ class Command(BaseCommand):
 
     def send_websocket(self, perf, company):
         ws = create_connection("ws://127.0.0.1:4000/socket/websocket")
-        ws.send(json.dumps({'topic': 'money:1', 'event': 'phx_join', 'ref': 1, 'payload': {}}))
-        payload = json.loads(perf.tail(1)[['pnl', 'portfolio_value', 'returns']].T.to_json())
+        ws.send(json.dumps(
+            {'topic': 'money:1', 'event': 'phx_join', 'ref': 1, 'payload': {}}
+        ))
+
+        payload = json.loads(perf.tail(1)[
+            ['pnl', 'portfolio_value', 'returns']].T.to_json())
 
         transaction = perf[perf['transactions'].map(lambda x: x != [])].index
         if not transaction.empty:
             payload['transaction'] = str(transaction.values[0])
-        data = json.dumps({'topic': 'money:1', 'event': 'money', 'ref': 1, 'payload': {company: payload}})
+
+        data = json.dumps({'topic': 'money:1', 'event': 'money', 'ref': 1,
+                           'payload': {company: payload}})
+
         print(data)
         ws.send(data)
         ws.close()
 
     def parse_kafka(self, company):
         print("Listening {0}".format(company))
-        consumer = KafkaConsumer(company, bootstrap_servers=settings.BOOTSTRAP_SERVER)
+
+        consumer = KafkaConsumer(
+            company, bootstrap_servers=[settings.BOOTSTRAP_SERVER])
+
         df = DataFrame()
-        end = datetime.now(timezone.utc)
-        start = end - timedelta(days=30)
-        columns = ['open', 'high', 'low', 'close','volume']
+        columns = ['open', 'high', 'low', 'close', 'volume']
         print("Starting consuming...")
 
         for msg in consumer:
@@ -82,4 +86,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for company in Company.objects.filter(ibovespa=True)[:10]:
+            print(settings.BOOTSTRAP_SERVER)
             Process(target=self.parse_kafka, args=(company.symbol,)).start()
