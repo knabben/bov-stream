@@ -9,6 +9,7 @@ Real-time BMF Stock Portfolio analysis
 Create a virtualenv for scrapper, run the Company fixture filling with:
 
 ```
+scrapper$ pip install -r requirements.txt
 scrapper$ make company-fixture
 ```
 
@@ -30,25 +31,28 @@ id  | symbol |     name     | main_url | ibovespa |  segment   |          create
   90 | BRAP4  | BRADESPAR    |          | t        | PN      N1 | 2020-02-08 09:11:03.397798-05 | 2020-02-08 09:11:03.397803-05 |
 ```
 
-### Run
-
-It is composed of a:
-
-* Producer, responsible to fetch tickets price from Yahoo and send through a specific Kafka topic
-* Consumer, fetch the message and backtest on Zipline, returns are streamed through websocket
-* Web interface, for visualization of events in realtime
-
-```
-make run-producer &
-make run-consumer
-```
-
 ### Visualizing in realtime
 
-It comes with a UI for realtime visualization and best performance companies ordering:
+It comes with a UI for realtime returns monitoring and a ranking with best values in the rank:
 
 ```
-make run-web
+make web
+```
+
+### Run
+
+Ingest the zipline data and calendars. 
+
+```
+$ QUANDL_API_KEY=xxx zipline ingest
+[2020-02-08 15:35:30.351729] INFO: zipline.data.bundles.quandl: Downloading WIKI metadata.
+```
+
+Start the streaming of returns via websocket, data should be started to
+be populated in the web.
+
+```
+$ make stream-quotes
 ```
 
 ## GraphQL API
