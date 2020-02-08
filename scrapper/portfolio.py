@@ -13,11 +13,13 @@ dsn = "postgres://postgres:postgres@127.0.0.1/web_dev"
 
 
 async def fetch_portfolio(loop):
-    """ Fetch portfolio on """
+    """ Fetch portfolio on BMF bovespa website """
 
+    # Async web request
     response = await loop.run_in_executor(None, requests.get, index_url)
     index_members = fetch_portfolio_composition(response.text)
 
+    # Async index members insertion in database
     async with create_engine(dsn) as engine:
         await prepare_tables(engine)
         async with engine.acquire() as conn:
