@@ -16,6 +16,7 @@ defmodule WebWeb.Router do
   scope "/", WebWeb do
     pipe_through :browser
 
+    get "/company", CompanyController, :index
     get "/about", AboutController, :index
     get "/", PageController, :index
   end

@@ -4,6 +4,5 @@ company-fixture:
 stream-quotes:
 	cd scrapper; python main.py fetch-price-tickers
 
-web:
-	cd scrapper; iex -S mix phx.server
-
+run-web:
+	cd web; iex -S mix phx.server
