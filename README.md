@@ -6,13 +6,28 @@ Real-time BMF Stock Portfolio analysis
 
 ### Install
 
-Create a virtualenv inside consumer folder
+Create a virtualenv for scrapper, run the Company fixture filling with:
 
 ```
-cd consumer
-consumer$ pipenv shell
-consumer$ pipenv install
-consumer$ make company-fixture
+scrapper$ make company-fixture
+```
+
+Check the database for the data insertion:
+
+```
+\c web_dev
+SELECT * FROM companies; 
+id  | symbol |     name     | main_url | ibovespa |  segment   |          created_at           |          updated_at           | deleted_at
+-----+--------+--------------+----------+----------+------------+-------------------------------+-------------------------------+------------
+  82 | ABEV3  | AMBEV S/A    |          | t        | ON         | 2020-02-08 09:11:03.38048-05  | 2020-02-08 09:11:03.38049-05  |
+  83 | AZUL4  | AZUL         |          | t        | PN      N2 | 2020-02-08 09:11:03.388613-05 | 2020-02-08 09:11:03.388619-05 |
+  84 | B3SA3  | B3           |          | t        | ON      NM | 2020-02-08 09:11:03.390134-05 | 2020-02-08 09:11:03.39014-05  |
+  85 | BBAS3  | BRASIL       |          | t        | ON      NM | 2020-02-08 09:11:03.391902-05 | 2020-02-08 09:11:03.391908-05 |
+  86 | BBDC3  | BRADESCO     |          | t        | ON  EJ  N1 | 2020-02-08 09:11:03.393044-05 | 2020-02-08 09:11:03.39305-05  |
+  87 | BBDC4  | BRADESCO     |          | t        | PN  EJ  N1 | 2020-02-08 09:11:03.394239-05 | 2020-02-08 09:11:03.394245-05 |
+  88 | BBSE3  | BBSEGURIDADE |          | t        | ON      NM | 2020-02-08 09:11:03.395518-05 | 2020-02-08 09:11:03.395524-05 |
+  89 | BPAC11 | BTGP BANCO   |          | t        | UNT     N2 | 2020-02-08 09:11:03.396699-05 | 2020-02-08 09:11:03.396704-05 |
+  90 | BRAP4  | BRADESPAR    |          | t        | PN      N1 | 2020-02-08 09:11:03.397798-05 | 2020-02-08 09:11:03.397803-05 |
 ```
 
 ### Run

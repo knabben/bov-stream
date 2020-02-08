@@ -1,4 +1,8 @@
 
+company-fixture:
+	cd scrapper; python main.py fetch-companies
+
+
 run-producer:
 	go run producer/main.go stream
 
@@ -10,5 +14,3 @@ run-web:
 
 	cd scrapper; iex -S mix phx.server
 
-company-fixture:
-	cd consumer; pipenv run python manage.py fetch_basic_companies
