@@ -1,0 +1,5 @@
+* Move all scrapper code to asyncio and aiopg
+* Create initial Relay companies listing via Elixir interface
+** Includes filtering and listing with pagination
+* Move websocket to pubsub (?)
+* Make rendering via Relay libs and foundation.js
