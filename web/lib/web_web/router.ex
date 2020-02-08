@@ -13,16 +13,16 @@ defmodule WebWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", WebWeb do
-    pipe_through :browser
-
-    get "/company", CompanyController, :index
-    get "/about", AboutController, :index
-    get "/", PageController, :index
+  scope "/api" do
+    pipe_through :api
+    resources "/company", CompanyController, only: [:index]
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", WebWeb do
-  #   pipe_through :api
-  # end
+  scope "/" do
+    pipe_through :api
+
+    forward "/graphql", Absinthe.Plug, schema: WebWeb.Schema
+    forward "/graphiql", Absinthe.Plug.GraphiQL, schema: WebWeb.Schema
+  end
+
 end

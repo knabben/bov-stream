@@ -3,10 +3,10 @@ defmodule WebWeb.CompanyView do
   alias WebWeb.CompanyView
 
   def render("index.json", %{companies: companies}) do
-    %{data: render_many(companies, CompanyView, "company.json")}
+    %{data: render_many(companies, CompanyView, "company")}
   end
 
-  def render("company.json", %{company: company}) do
+  def render("company", %{company: company}) do
     %{id: company.id,
       symbol: company.symbol,
       name: company.name,
