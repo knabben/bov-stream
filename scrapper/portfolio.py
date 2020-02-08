@@ -1,15 +1,9 @@
 import requests
 
 from bs4 import BeautifulSoup
-from datetime import datetime
-from aiopg.sa import create_engine
-
-
-from tables import companies, metadata
-from tables import prepare_tables
+from db import save_companies
 
 index_url = "http://bvmf.bmfbovespa.com.br/indices/ResumoCarteiraTeorica.aspx?Indice=IBOV&idioma=pt-br"
-dsn = "postgres://postgres:postgres@127.0.0.1/web_dev"
 
 
 async def fetch_portfolio(loop):
@@ -19,28 +13,12 @@ async def fetch_portfolio(loop):
     response = await loop.run_in_executor(None, requests.get, index_url)
     index_members = fetch_portfolio_composition(response.text)
 
-    # Async index members insertion in database
-    async with create_engine(dsn) as engine:
-        await prepare_tables(engine)
-        async with engine.acquire() as conn:
-            for member_symbol, member_data in index_members.items():
-                await conn.execute(
-                    companies.insert().values(
-                        symbol=member_symbol,
-                        name=member_data.get("name"),
-                        segment=member_data.get("type"),
-                        ibovespa=True,
-                        created_at=datetime.now(),
-                        updated_at=datetime.now(),
-                    )
-                )
-                print(member_symbol, member_data)
+    # Save companies in the database
+    await save_companies(index_members)
 
 
 def fetch_portfolio_composition(content):
-    """
-    Fetch IBOVESPA portfolio index composition, basic data from main page
-    """
+    """ Fetch IBOVESPA portfolio index composition, basic data from main page. """
     index_members = {}
     data = BeautifulSoup(content, "lxml")
 
