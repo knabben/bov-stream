@@ -4,6 +4,15 @@ defmodule WebWeb.Schema do
   alias Web.{Bovespa, Repo}
   alias WebWeb.Resolvers
 
+  import_types __MODULE__.CompanyTypes
+
+  mutation do
+    field :company, :company_result do
+      arg :input, non_null(:company_input)
+      resolve &Resolvers.Company.create_company/3
+    end
+  end
+
   query do
     field :companies, list_of(:company) do
       resolve fn _, _, _ ->
@@ -11,13 +20,4 @@ defmodule WebWeb.Schema do
       end
     end
   end
-
-  object :company do
-    field :id, :id
-    field :name, :string
-    field :symbol, :string
-    field :segment, :string
-    field :ibovespa, :boolean
-  end
-
 end

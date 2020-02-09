@@ -17,9 +17,6 @@ companies = sa.Table(
     sa.Column("main_url", sa.String(100)),
     sa.Column("ibovespa", sa.Boolean),
     sa.Column("segment", sa.String(200)),
-    sa.Column("created_at", sa.TIMESTAMP(timezone=True)),
-    sa.Column("updated_at", sa.TIMESTAMP(timezone=True)),
-    sa.Column("deleted_at", sa.TIMESTAMP(timezone=True)),
 )
 
 
@@ -48,8 +45,6 @@ async def save_companies(index_members):
                         name=member_data.get("name"),
                         segment=member_data.get("type"),
                         ibovespa=True,
-                        created_at=datetime.now(),
-                        updated_at=datetime.now(),
                     )
                 )
                 print(member_symbol, member_data)

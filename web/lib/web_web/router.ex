@@ -28,7 +28,7 @@ defmodule WebWeb.Router do
     pipe_through :api
 
     forward "/graphql", Absinthe.Plug, schema: WebWeb.Schema
-    forward "/graphiql", Absinthe.Plug.GraphiQL, schema: WebWeb.Schema
+    forward "/graphiql", Absinthe.Plug.GraphiQL, schema: WebWeb.Schema, socket: WebWeb.UserSocket
   end
 
 end

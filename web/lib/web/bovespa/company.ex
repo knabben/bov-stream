@@ -8,8 +8,6 @@ defmodule Web.Bovespa.Company do
     field :name, :string
     field :segment, :string
     field :symbol, :string
-
-    timestamps()
   end
 
   @doc false
