@@ -1,24 +1,55 @@
 {
   "repository": {},
   "license": "MIT",
-  "scripts": {
-    "deploy": "webpack --mode production",
-    "watch": "webpack --mode development --watch"
-  },
   "dependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.8.3",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "create-react-app": "^3.3.1",
+    "graphql": "^14.6.0",
     "phoenix": "file:../deps/phoenix",
-    "phoenix_html": "file:../deps/phoenix_html"
+    "phoenix_html": "file:../deps/phoenix_html",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "react-relay": "^8.0.0",
+    "react-scripts": "3.3.1"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "babel-loader": "^8.0.0",
+    "babel-plugin-relay": "^8.0.0",
     "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^3.4.2",
     "mini-css-extract-plugin": "^0.9.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "relay-compiler": "^8.0.0",
     "terser-webpack-plugin": "^2.3.2",
     "webpack": "4.41.5",
     "webpack-cli": "^3.3.2"
+  },
+  "scripts": {
+    "deploy": "webpack --mode production",
+    "watch": "webpack --mode development --watch",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
