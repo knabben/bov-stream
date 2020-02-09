@@ -7,6 +7,16 @@ defmodule Web.Bovespa do
   alias Web.Repo
   alias Web.Bovespa.Company
 
+  def company_filter(args) do
+    Enum.reduce(args, Company, fn
+      {:order, order}, query ->
+        query |> order_by({^order, :name})
+
+      _, query ->
+        query
+    end)
+  end
+
   @doc """
   Returns the list of companies.
 

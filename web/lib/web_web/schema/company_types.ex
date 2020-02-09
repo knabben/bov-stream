@@ -1,5 +1,6 @@
 defmodule WebWeb.Schema.CompanyTypes do
   use Absinthe.Schema.Notation
+  use Absinthe.Relay.Schema.Notation, :modern
 
   input_object :company_input do
     field :symbol, non_null(:string)
@@ -24,6 +25,26 @@ defmodule WebWeb.Schema.CompanyTypes do
     field :symbol, :string
     field :segment, :string
     field :ibovespa, :boolean
+  end
+
+  interface :company_result do
+    field :name, :string
+    resolve_type fn
+      %Web.Bovespa.Company{}, _ ->
+        :company
+      _, _ ->
+      nil
+    end
+  end
+
+  connection node_type: :company
+
+  node object :company do
+    interfaces [:company_result]
+
+    field :name, :string
+    field :symbol, :string
+    field :segment, :string
   end
 
 end
