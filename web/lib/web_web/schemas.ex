@@ -5,13 +5,11 @@ defmodule WebWeb.Schema do
   alias WebWeb.Resolvers
 
   query do
-
     field :companies, list_of(:company) do
       resolve fn _, _, _ ->
         {:ok, Bovespa.list_companies()}
       end
     end
-
   end
 
   object :company do

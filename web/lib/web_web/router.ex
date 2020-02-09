@@ -18,6 +18,12 @@ defmodule WebWeb.Router do
     resources "/company", CompanyController, only: [:index]
   end
 
+  scope "/", WebWeb do
+    pipe_through :browser
+
+    get "/", PageController, :index
+  end
+
   scope "/" do
     pipe_through :api
 
