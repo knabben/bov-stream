@@ -9,4 +9,5 @@ jobs:
         with:
           otp-version: 22.2
           elixir-version: 1.9.4
+      - run: mix deps.get
       - run: cd web/ ; mix absinthe.schema.json --schema WebWeb.Schema  schema.graphql
