@@ -21,7 +21,7 @@ jobs:
         uses: knabben/gql-pull@0.0.6
         id: pull
         with:
-          source: schema.json
+          source: web/schema.json
           destination: pr-schema.json
 
       - name: Bring diff to PR
