@@ -21,8 +21,8 @@ jobs:
         id: pull
         uses: knabben/gql-pull@0.0.6
         with:
-          source: web/schema.json
-          destination: web/pr-schema.json
+          source: web/pr-schema.json
+          destination: web/schema.json
 
       - name: Bring diff to PR
         uses: unsplash/comment-on-pr@master
