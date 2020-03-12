@@ -1,0 +1,22 @@
+name: Generate schema
+on: 
+  push:
+    branches:
+    - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: 22.2
+          elixir-version: 1.9.4
+      - run: |
+          cd web/ 
+          mix deps.get
+          mix absinthe.schema.json --schema WebWeb.Schema schema.json
+          git add schema.json
+          git commit -m "Adding schema.json from master"
+          git push
