@@ -16,14 +16,17 @@ jobs:
           cd web/ 
           mix deps.get
           mix absinthe.schema.json --schema WebWeb.Schema pr-schema.json
+
       - name: gql-pull
+        id: pull
         uses: knabben/gql-pull@0.0.6
         with:
-          source: schema.json
-          destination: pr-schema.json
+          source: web/schema.json
+          destination: web/pr-schema.json
 
       - name: Bring diff to PR
-        uses: thollander/actions-comment-pull-request@master
+        uses: unsplash/comment-on-pr@master
         with:
-          message: ${{ outputs.output }}
+          msg: ${{ steps.pull.outputs.output }}
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
