@@ -5,7 +5,7 @@ on:
     - master
 
 jobs:
-  test:
+  elixir:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -14,9 +14,14 @@ jobs:
           otp-version: 22.2
           elixir-version: 1.9.4
       - run: |
-          cd web/ 
+          cd web/
+
           mix deps.get
           mix absinthe.schema.json --schema WebWeb.Schema schema.json
+
+          git config --global user.email "amim.knabben@gmail.com"
+          git config --global user.name "Amim Knabben"
+        
           git add schema.json
           git commit -m "Adding schema.json from master"
           git push
