@@ -22,7 +22,7 @@ jobs:
         id: pull
         with:
           source: web/schema.json
-          destination: pr-schema.json
+          destination: web/pr-schema.json
 
       - name: Bring diff to PR
         uses: unsplash/comment-on-pr@master
