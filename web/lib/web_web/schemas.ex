@@ -38,7 +38,7 @@ defmodule WebWeb.Schema do
       resolve &Resolvers.Company.company_filter/3
     end
 
-    field :companies, list_of(:company) do
+    field :company, list_of(:company) do
       resolve fn _, _, _ ->
         {:ok, Bovespa.list_companies()}
       end
