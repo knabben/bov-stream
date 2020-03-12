@@ -18,10 +18,15 @@ jobs:
 
           mix deps.get
           mix absinthe.schema.json --schema WebWeb.Schema schema.json
+   
+          OUTPUT=`git status schema.json -s`
 
-          git config --global user.email "amim.knabben@gmail.com"
-          git config --global user.name "Amim Knabben"
-        
-          git add schema.json
-          git commit -m "Adding schema.json from master"
-          git push
+          if [ ! -z "$OUTPUT" ]
+          then
+            git config --global user.email "amim.knabben@gmail.com"
+            git config --global user.name "Amim Knabben"
+          
+            git add schema.json
+            git commit -m "Adding schema.json from master"
+            git push
+          fi
